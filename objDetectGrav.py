@@ -19,7 +19,8 @@ flag_dist=0
 prev_distance=0
 ldist=0
 
-
+true_distance=[]
+true_velocity=[]
 
 while(1):
      dist=0
@@ -85,6 +86,7 @@ while(1):
                       #print dist,
                       #print ldist
                       distance.append((dist-prev_distance)*(0.6/121))
+                      
                       time.append(cap.get(0))
                       ldist=dist
 
@@ -141,16 +143,26 @@ cap.release()
 #print distance
 filt=signal.medfilt(distance)
 
-
 maxdist_index=np.argmax(filt)
 mindist_index=np.argmin(filt)
+
 max_time = time[maxdist_index]
 min_time = time[mindist_index]
+
+time[:]=[x-min_time for x in time]
+
+for i in time:
+     true_distance.append((0.5*9.7779*i*i)*(10**-6))
+
+
+#print true_distance
+true_velocity=np.gradient(true_distance)
+
 print "Distance: "+str(max(filt))+" m"
 print "Stop Time: ",
-print str(max_time)+ " ms",
+print str(max_time-min_time)+ " ms",
 print" Start Time: ",
-print str(min_time)+" ms"
+print str(min_time-min_time)+" ms"
 print " "
 
 acceleration_g=(2*max(filt)*1000000)/((max_time-min_time)**2)
@@ -162,22 +174,22 @@ timeg=np.gradient(time)
 
 f1=plt.figure(1)
 f1.suptitle('Distance v/s time')
-plt.plot(time,filt)
+plt.plot(time,filt,'r',label="Actual Path")
+plt.plot(time,true_distance,'b',label="True Path")
 plt.ylabel('distance (m)')
 plt.xlabel('time(ms)')
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
 plt.show()
 
 f2=plt.figure(2)
 f2.suptitle('Velocity v/s time')
-plt.plot(time,np.divide(velocity*1000,timeg))
+plt.plot(time,np.divide(velocity*1000,timeg),'r',label="Actual Velocity")
+plt.plot(time,np.divide(true_velocity*1000,timeg),'b',label="True Velocity")
+
 #plt.plot(time,velocity*1000)
 plt.ylabel('velocity (m/s)')
 plt.xlabel('time(ms)')
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
 plt.show()
 
-f3=plt.figure(3)
-f3.suptitle('Acceleration v/s time')
-plt.plot(time,np.divide(g,timeg))
-plt.ylabel('acceleration (m/s2)')
-plt.xlabel('time(ms)')
-plt.show()
+
