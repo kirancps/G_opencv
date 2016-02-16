@@ -7,7 +7,7 @@ from scipy import signal
 
 
 #cap = cv2.VideoCapture(0)
-cap = cv2.VideoCapture('output_ga.avi')
+cap = cv2.VideoCapture('output_g2.avi')
 timeg=[]
 distance=[]
 velocity=[]
@@ -64,18 +64,25 @@ while(1):
             center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
             xp=center[0]
             yp=center[1]
-            dist=math.sqrt(((xp-xlast)**2)+((yp-ylast)**2))
-            if (flag_dist==0):
-                 prev_distance=dist
-                 flag_dist+=1
+
+            if (xp-xlast>=50 and yp-ylast>=50):
+                 
+                 
+                 dist=math.sqrt(((xp-xlast)**2)+((yp-ylast)**2))
+                 if (flag_dist==0):
+                      prev_distance=dist
+                      flag_dist+=1
             
                  
-            distance.append((dist-prev_distance)*(0.6/121))
+                 distance.append((dist-prev_distance)*(0.6/121))
+                 time.append(cap.get(0))
+
+                 
             xlast=xp
             ylast=yp
             #print prev_distance
             #print distance
-            time.append(cap.get(0))
+           
             #print cap.get(0)
             
             
