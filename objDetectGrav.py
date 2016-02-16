@@ -7,7 +7,7 @@ from scipy import signal
 
 
 #cap = cv2.VideoCapture(0)
-cap = cv2.VideoCapture('output_g2.avi')
+cap = cv2.VideoCapture('output_g1.avi')
 timeg=[]
 distance=[]
 velocity=[]
@@ -17,18 +17,24 @@ filt=[]
 time=[]
 flag_dist=0
 prev_distance=0
+ldist=0
+
+
 
 while(1):
+     dist=0
      xlast=0
      ylast=0
      xp=0
      yp=0
      
+     
     # Take each frame
-     ret, frame = cap.read()
+     ret, frame1 = cap.read()
 
      if ret == True:
          # Convert BGR to HSV
+        frame=cv2.GaussianBlur(frame1,(5,5),0)
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
        
     # define range of blue color in HSV
@@ -64,22 +70,30 @@ while(1):
             center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
             xp=center[0]
             yp=center[1]
-
-            if (xp-xlast>=50 and yp-ylast>=50):
+            
+            if (xp-xlast>=23 and yp-ylast>=23):
                  
                  
                  dist=math.sqrt(((xp-xlast)**2)+((yp-ylast)**2))
+                 #print dist
                  if (flag_dist==0):
                       prev_distance=dist
                       flag_dist+=1
             
-                 
-                 distance.append((dist-prev_distance)*(0.6/121))
-                 time.append(cap.get(0))
+                 if ((dist-ldist)>1):
+                      
+                      #print dist,
+                      #print ldist
+                      distance.append((dist-prev_distance)*(0.6/121))
+                      time.append(cap.get(0))
+                      ldist=dist
 
                  
             xlast=xp
             ylast=yp
+            
+            
+            
             #print prev_distance
             #print distance
            
@@ -116,26 +130,30 @@ while(1):
         
      else:
         break
-     t.sleep(0.25)
+     #t.sleep(0.25)
          
 
     
 
 cv2.destroyAllWindows()
 cap.release()
+
+#print distance
 filt=signal.medfilt(distance)
+
+
 maxdist_index=np.argmax(filt)
 mindist_index=np.argmin(filt)
 max_time = time[maxdist_index]
 min_time = time[mindist_index]
-print "Distance: "+str(0.61)+" m"
+print "Distance: "+str(max(filt))+" m"
 print "Stop Time: ",
 print str(max_time)+ " ms",
 print" Start Time: ",
 print str(min_time)+" ms"
 print " "
 
-acceleration_g=(2*0.61*1000000)/((max_time-min_time)**2)
+acceleration_g=(2*max(filt)*1000000)/((max_time-min_time)**2)
 print "Acceleration due to gravity = "+str(acceleration_g)+" m/s2"
 velocity=np.gradient(filt)
 g=np.gradient(velocity*1000)
