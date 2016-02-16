@@ -1,3 +1,14 @@
+"""  Author: Kiran Pattanashetty
+   Vision based 'g' value caluclation v1
+   GitHub: https://github.com/kirancps/G_opencv.git
+   
+This program is developed to calculate acceleration due to gravity
+of free falling object. The program uses opencv, numpy, scipy and matplotlib
+libraries. The accuracy of the results have to be imporved"""
+
+
+
+""" importing libraries"""
 import cv2
 import numpy as np
 import time as t
@@ -6,21 +17,28 @@ import matplotlib.pyplot as plt
 from scipy import signal
 
 
-#cap = cv2.VideoCapture(0)
-cap = cv2.VideoCapture('output_g1.avi')
-timeg=[]
-distance=[]
-velocity=[]
-g=[]
-filt=[]
 
-time=[]
+#opening video file
+cap = cv2.VideoCapture('output_g1.avi')
+
+#variable declarations
+timeg=[] #time gradient (for velocity)
+distance=[] #stores distance travelled by object"
+velocity=[] #stores velocity travelled by object
+
+g=[] #acceleration
+
+filt=[]#stores filtered distance values(median)
+
+time=[]#captures time when object is detected
 flag_dist=0
-prev_distance=0
+prev_distance=0 #first time distance when it is detected
 ldist=0
 
-true_distance=[]
-true_velocity=[]
+true_distance=[] #Estimated distance using s=0.5gt^2
+true_velocity=[] #estimated velocity
+
+
 
 while(1):
      dist=0
@@ -34,26 +52,31 @@ while(1):
      ret, frame1 = cap.read()
 
      if ret == True:
-         # Convert BGR to HSV
+
+         #guassian filter
         frame=cv2.GaussianBlur(frame1,(5,5),0)
+        # Convert BGR to HSV
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
        
-    # define range of blue color in HSV
-    #lower_blue = np.array([110,50,50])
-    #upper_blue = np.array([130,255,255])
-
+   
+    
+   
+         # define range of red color in HSV 
         lower_blue = np.array([1,141,56])
         upper_blue = np.array([10,190,143])
     
-    # Threshold the HSV image to get only blue colors
+    # Threshold the HSV image to get only red color (color of ball is red
+    
         mask = cv2.inRange(hsv, lower_blue, upper_blue)
+        #dialate and erode operation
         mask=cv2.erode(mask,None,iterations=2)
         mask=cv2.dilate(mask,None,iterations=2)
+        
         img_th = cv2.adaptiveThreshold(mask.copy(),255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
-    #contours = cv2.findContours(mask.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2]
+   
         _,contours, hierarchy = cv2.findContours(img_th.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-        #print contours
+        
         
         #print M
 
