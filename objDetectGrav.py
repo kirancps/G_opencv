@@ -20,6 +20,7 @@ from scipy import signal
 
 #opening video file
 cap = cv2.VideoCapture('output_g1.avi')
+#cap = cv2.VideoCapture('output_g2.avi')
 
 #variable declarations
 timeg=[] #time gradient (for velocity)
@@ -44,6 +45,7 @@ while(1):
      dist=0
      xlast=0
      ylast=0
+     
      xp=0
      yp=0
      
@@ -113,9 +115,12 @@ while(1):
                       time.append(cap.get(0))
                       ldist=dist
 
-                 
+
+           
+            
             xlast=xp
             ylast=yp
+            
             
             
             
@@ -190,28 +195,52 @@ print " "
 
 acceleration_g=(2*max(filt)*1000000)/((max_time-min_time)**2)
 print "Acceleration due to gravity = "+str(acceleration_g)+" m/s2"
+
+
 velocity=np.gradient(filt)
+
+max_velocity_index=np.argmax(velocity)
+
+velocity=velocity[:max_velocity_index]
+min_vel=min(velocity)
+velocity[:]=[x-min_vel for x in velocity]
+
+true_velocity=true_velocity[:max_velocity_index]
+min_true_vel=min(true_velocity)
+
+true_velocity[:]=[y-min_true_vel for y in true_velocity]
+
+
+
+
 g=np.gradient(velocity*1000)
+
 
 timeg=np.gradient(time)
 
+timeg_vel=timeg[:max_velocity_index]
+
+timeVel=time[:max_velocity_index]
+
+
+
 f1=plt.figure(1)
-f1.suptitle('Distance v/s time')
+f1.suptitle('Distance v/s Time')
 plt.plot(time,filt,'r',label="Actual Path")
-plt.plot(time,true_distance,'b',label="True Path")
-plt.ylabel('distance (m)')
-plt.xlabel('time(ms)')
+plt.plot(time,true_distance,'b',label="Desired Path",linestyle='--')
+plt.ylabel('Distance (m)')
+plt.xlabel('Time(ms)')
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
 plt.show()
 
 f2=plt.figure(2)
-f2.suptitle('Velocity v/s time')
-plt.plot(time,np.divide(velocity*1000,timeg),'r',label="Actual Velocity")
-plt.plot(time,np.divide(true_velocity*1000,timeg),'b',label="True Velocity")
+f2.suptitle('Velocity v/s Time')
+plt.plot(timeVel,np.divide(velocity*1000,timeg_vel),'r',label="Actual Velocity")
+plt.plot(timeVel,np.divide(true_velocity*1000,timeg_vel),'b',label="Desired Velocity",linestyle='--')
 
 #plt.plot(time,velocity*1000)
-plt.ylabel('velocity (m/s)')
-plt.xlabel('time(ms)')
+plt.ylabel('Velocity (m/s)')
+plt.xlabel('Time(ms)')
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
 plt.show()
 
